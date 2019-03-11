@@ -1,0 +1,33 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+log_all <- readRDS(here("/data/log_all.RDS"))
+
+log_all_clean <- log_all %>%
+  mutate(src = parse_integer(src)) %>%
+  left_join(log_text_clean, by = c("src" = "row"))
+
+
+ggplot(log_all_clean, aes(created_dt, parse_number(Pos), group = Musher)) +
+  geom_line(color = "gray70") +
+  
+  geom_line(data = log_all_clean %>%
+              filter(Musher %>% str_detect("Petit"))) +
+  geom_line(data = log_all_clean %>%
+              filter(Musher %>% str_detect("Kais")),
+            color = "red") +
+  scale_y_reverse() 
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
