@@ -34,6 +34,13 @@ log_text_clean <- log_text_clean %>%
          row = row_number())
 
 
+# Check what logs have loaded
+log_existing <- readRDS(here("/data/log_all.RDS"))
+
+log_missing <- log_text_clean %>%
+  anti_join(log_existing %>% select(log_number))
+
+
 
 # Now that we know the available pages, scrape.
 scrape_func <- function(dest) {
@@ -62,6 +69,10 @@ scrape_func <- function(dest) {
 # Takes about 10 minutes to run...
 log_all <- map_df(log_pages, scrape_func, .id = "src")
 
+log_all_clean <- log_all %>%
+  mutate(src = parse_integer(src)) %>%
+  left_join(log_text_clean, by = c("src" = "row"))
 
-saveRDS(log_all, here("/data/log_all.RDS"))
+
+saveRDS(log_all_clean, here("/data/log_all.RDS"))
 

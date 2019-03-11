@@ -1,16 +1,14 @@
 ---
 title: "R Notebook"
 output: html_notebook
+editor_options: 
+  chunk_output_type: inline
 ---
 
 
 ```{r}
 library(tidyverse)
 log_all <- readRDS(here("/data/log_all.RDS"))
-
-log_all_clean <- log_all %>%
-  mutate(src = parse_integer(src)) %>%
-  left_join(log_text_clean, by = c("src" = "row"))
 
 
 ggplot(log_all_clean, aes(created_dt, parse_number(Pos), group = Musher)) +
