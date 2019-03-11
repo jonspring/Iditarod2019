@@ -8,8 +8,8 @@ session <- bow("https://iditarod.com/race/2019/logs/", force = TRUE)
 # Get links to all logs
 log_pages <- scrape(session)  %>% #, params="t=semi-soft&per_page=100") %>%
   html_nodes(".post-content") %>%
-  map(~html_nodes(., "a")) %>%
-  pluck(1) %>%
+  map(~html_nodes(., "a"))  %>%
+  # pluck(1)
   xml_attr("href")
 
 
@@ -39,6 +39,40 @@ log_existing <- readRDS(here("/data/log_all.RDS"))
 
 log_missing <- log_text_clean %>%
   anti_join(log_existing %>% select(log_number))
+
+
+# Get locations and distance
+
+loc_dist <- tibble::tribble(
+                      ~Checkpoint, ~Distance,
+                      "Anchorage",         0,
+              "Campbell Airstrip",        11,
+                         "Willow",        11,
+                         "Yentna",        53,
+                       "Skwentna",        83,
+                    "Finger Lake",       123,
+                     "Rainy Pass",       153,
+                           "Rohn",       188,
+                        "Nikolai",       263,
+                        "McGrath",       311,
+                        "Takotna",       329,
+                          "Ophir",       352,
+                       "Iditarod",       432,
+                       "Shageluk",       487,
+                          "Anvik",       512,
+                       "Grayling",       530,
+                   "Eagle Island",       592,
+                         "Kaltag",       652,
+                     "Unalakleet",       737,
+                     "Shaktoolik",       777,
+                          "Koyuk",       827,
+                           "Elim",       875,
+                 "White Mountain",       921,
+                         "Safety",       976,
+                           "Nome",       998
+              ) %>%
+  mutate(Distance_from_prior = Distance - lag(Distance))
+
 
 
 
@@ -72,6 +106,20 @@ log_all <- map_df(log_pages, scrape_func, .id = "src")
 log_all_clean <- log_all %>%
   mutate(src = parse_integer(src)) %>%
   left_join(log_text_clean, by = c("src" = "row"))
+
+log_all_clean2 <- log_all_clean %>%
+  separate(InTime, into = c("InTimeDt", "InTimeTime"), sep = " ", remove = FALSE) %>%
+  mutate(InTime2 = lubridate::mdy_hms(paste0(InTimeDt, "/19 ", InTimeTime))) %>%
+  separate(OutTime, into = c("OutTimeDt", "OutTimeTime"), sep = " ", remove = FALSE) %>%
+  mutate(OutTime2 = lubridate::mdy_hms(paste0(OutTimeDt, "/19 ", OutTimeTime)))
+
+
+
+### TO DO - INTEGRATE
+# log_all_clean %>%
+#   mutate(InTime = convert_time(InTime),
+#          OutTime = convert_time(OutTime),
+#          PreviousTimeOut = convert_time(PreviousTimeOut))
 
 
 saveRDS(log_all_clean, here("/data/log_all.RDS"))

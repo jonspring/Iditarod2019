@@ -6,9 +6,9 @@ editor_options:
 ---
 
 
-```{r}
-library(tidyverse)
-log_all <- readRDS(here("/data/log_all.RDS"))
+```{r fig.height=7, fig.width=11}
+library(tidyverse); library(here)
+log_all_clean <- readRDS(here("/data/log_all.RDS"))
 
 
 ggplot(log_all_clean, aes(created_dt, parse_number(Pos), group = Musher)) +
@@ -19,9 +19,36 @@ ggplot(log_all_clean, aes(created_dt, parse_number(Pos), group = Musher)) +
   geom_line(data = log_all_clean %>%
               filter(Musher %>% str_detect("Kais")),
             color = "red") +
+  scale_x_datetime(date_breaks = "1 day", date_labels = "%a\n%m/%d", minor_breaks = NULL) +
   scale_y_reverse() 
 
 ```
+
+```{r}
+
+# convert_time <- function(dt) {
+#   tempDate = lubridate::ymd(paste("2019",str_sub(dt, end = 4) %>% str_trim()))
+#   tempDT = lubridate::ymd_hms(paste(tempDate, str_sub(dt, start = 4)))
+# }
+
+
+locations <- log_all_clean2 %>%
+  group_by(Checkpoint) %>%
+  summarize(firstIn = min(InTime2, na.rm = T)) %>%
+  arrange(firstIn) %>%
+  mutate(Checkpoint = fct_reorder(Checkpoint, firstIn))
+
+ggplot(locations, aes(firstIn, Checkpoint)) + geom_point()
+
+ggplot(locations, 
+       aes(InTime, OutTime, label = Musher)) +
+  geom_text() +
+  facet_wrap(~Checkpoint)
+
+
+```
+
+
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 
