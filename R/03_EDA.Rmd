@@ -8,7 +8,7 @@ editor_options:
 
 ```{r fig.height=7, fig.width=11}
 library(tidyverse); library(here)
-log_all_clean <- readRDS(here("/data/log_all.RDS"))
+log_all_clean <- readRDS(here("/data/log_new.RDS"))
 
 
 ggplot(log_all_clean, aes(created_dt, parse_number(Pos), group = Musher)) +

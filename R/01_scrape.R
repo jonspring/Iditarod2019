@@ -9,7 +9,7 @@ session <- bow("https://iditarod.com/race/2019/logs/", force = TRUE)
 log_pages <- scrape(session)  %>% #, params="t=semi-soft&per_page=100") %>%
   html_nodes(".post-content") %>%
   map(~html_nodes(., "a"))  %>%
-  # pluck(1)
+  pluck(1)  %>%
   xml_attr("href")
 
 
@@ -99,11 +99,17 @@ scrape_func <- function(dest) {
     filter(row_number() != 1)
 }
 
+missing_log_table <- log_pages %>%
+  enframe() %>%
+  mutate(log_number = str_sub(value, 37, 39)) %>%
+  right_join(log_missing)
 
-# Takes about 10 minutes to run...
-log_all <- map_df(log_pages, scrape_func, .id = "src")
 
-log_all_clean <- log_all %>%
+# Takes about 10 minutes to run if all...
+log_new <- map_df(missing_log_pages$value,
+                  scrape_func, .id = "src")
+
+log_all_clean <- log_new %>%
   mutate(src = parse_integer(src)) %>%
   left_join(log_text_clean, by = c("src" = "row"))
 
@@ -122,5 +128,5 @@ log_all_clean2 <- log_all_clean %>%
 #          PreviousTimeOut = convert_time(PreviousTimeOut))
 
 
-saveRDS(log_all_clean, here("/data/log_all.RDS"))
+saveRDS(log_all_clean, here("/data/log_new.RDS"))
 
